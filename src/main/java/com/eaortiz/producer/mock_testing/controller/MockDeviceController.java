@@ -1,9 +1,9 @@
-package com.eaortiz.producer.controller;
+package com.eaortiz.producer.mock_testing.controller;
 
 import com.eaortiz.producer.domain.Device;
-import com.eaortiz.producer.service.DeviceSnapshotService;
+import com.eaortiz.producer.mock_testing.service.DeviceSnapshotService;
 import com.eaortiz.producer.mqtt.DeviceUpdatePayload;
-import com.eaortiz.producer.mqtt.MqttUpdatePublisher;
+import com.eaortiz.producer.mock_testing.mqtt.MqttUpdatePublisher;
 import lombok.AllArgsConstructor;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.http.ResponseEntity;

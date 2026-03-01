@@ -1,7 +1,7 @@
-package com.eaortiz.producer.kafka;
+package com.eaortiz.producer.mock_testing.kafka;
 
 import com.eaortiz.producer.domain.Device;
-import com.eaortiz.producer.service.DeviceSnapshotService;
+import com.eaortiz.producer.mock_testing.service.DeviceSnapshotService;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -18,9 +18,9 @@ import java.util.List;
  */
 @Component
 @AllArgsConstructor
-public class DeviceStateConsumer {
+public class KafkaUpdateListener {
 
-    private static final Logger log = LoggerFactory.getLogger(DeviceStateConsumer.class);
+    private static final Logger log = LoggerFactory.getLogger(KafkaUpdateListener.class);
     private static final TypeReference<List<Device>> SNAPSHOT_TYPE = new TypeReference<>() {};
 
     private final DeviceSnapshotService snapshotService;

@@ -16,9 +16,9 @@ import java.util.Optional;
  */
 @Component
 @AllArgsConstructor
-public class OutboxPublisher {
+public class KafkaUpdatePublisher {
 
-    private static final Logger log = LoggerFactory.getLogger(OutboxPublisher.class);
+    private static final Logger log = LoggerFactory.getLogger(KafkaUpdatePublisher.class);
 
     private final OutboxService outboxService;
     private final KafkaTemplate<String, String> kafkaTemplate;

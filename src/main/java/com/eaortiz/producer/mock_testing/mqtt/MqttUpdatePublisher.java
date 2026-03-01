@@ -1,4 +1,4 @@
-package com.eaortiz.producer.mqtt;
+package com.eaortiz.producer.mock_testing.mqtt;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -34,7 +34,7 @@ public class MqttUpdatePublisher {
     /**
      * Publishes a device update to the MQTT topic as if a device had sent it.
      */
-    public void publishUpdate(DeviceUpdatePayload payload) {
+    public void publishUpdate(com.eaortiz.producer.mqtt.DeviceUpdatePayload payload) {
         try {
             String json = objectMapper.writeValueAsString(payload);
             MqttMessage message = new MqttMessage(json.getBytes());

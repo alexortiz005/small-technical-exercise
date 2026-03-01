@@ -1,4 +1,4 @@
-package com.eaortiz.producer.service;
+package com.eaortiz.producer.mock_testing.service;
 
 import com.eaortiz.producer.domain.Device;
 import org.springframework.stereotype.Service;
