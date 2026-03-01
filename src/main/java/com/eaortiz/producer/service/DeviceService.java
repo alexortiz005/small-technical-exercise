@@ -2,12 +2,10 @@ package com.eaortiz.producer.service;
 
 import com.eaortiz.producer.domain.Device;
 import com.eaortiz.producer.domain.DeviceRepository;
-import com.eaortiz.producer.domain.OutboxEntry;
-import com.eaortiz.producer.domain.OutboxRepository;
 import com.eaortiz.producer.mqtt.DeviceUpdatePayload;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.springframework.beans.factory.annotation.Value;
+import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -19,34 +17,20 @@ import java.util.List;
  * the full state of all devices is eventually published to Kafka atomically with the DB update.
  */
 @Service
+@AllArgsConstructor
 public class DeviceService {
 
-    private static final String SNAPSHOT_PARTITION_KEY = "snapshot";
-
     private final DeviceRepository deviceRepository;
-    private final OutboxRepository outboxRepository;
+    private final OutboxService outboxService;
     private final ObjectMapper objectMapper;
-    private final String deviceStateTopic;
-
-    public DeviceService(
-            DeviceRepository deviceRepository,
-            OutboxRepository outboxRepository,
-            ObjectMapper objectMapper,
-            @Value("${kafka.topic.device-state}") String deviceStateTopic) {
-        this.deviceRepository = deviceRepository;
-        this.outboxRepository = outboxRepository;
-        this.objectMapper = objectMapper;
-        this.deviceStateTopic = deviceStateTopic;
-    }
 
     /**
-     * Creates a device or updates its room temperature if a device with the same logical key (name) exists.
+     * Creates a device or updates it if one with the given id exists. Identified by id; names may duplicate.
      * In the same transaction, writes an outbox entry with the full state of all devices for Kafka.
      */
     @Transactional
     public void createOrUpdate(DeviceUpdatePayload payload) {
-        String name = payload.name();
-        deviceRepository.findByName(name)
+        deviceRepository.findById(payload.deviceId())
                 .map(existing -> {
                     existing.setName(payload.name());
                     existing.setRoomTemperature(payload.roomTemperature());
@@ -54,6 +38,7 @@ public class DeviceService {
                 })
                 .orElseGet(() -> {
                     Device newDevice = Device.builder()
+                            .id(payload.deviceId())
                             .name(payload.name())
                             .roomTemperature(payload.roomTemperature())
                             .build();
@@ -67,11 +52,6 @@ public class DeviceService {
         } catch (JsonProcessingException e) {
             throw new IllegalStateException("Failed to serialize device state snapshot", e);
         }
-        outboxRepository.save(OutboxEntry.builder()
-                .topic(deviceStateTopic)
-                .partitionKey(SNAPSHOT_PARTITION_KEY)
-                .payload(payloadJson)
-                .status(OutboxEntry.Status.PENDING)
-                .build());
+        outboxService.appendSnapshot(payloadJson);
     }
 }

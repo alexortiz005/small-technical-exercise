@@ -6,9 +6,9 @@ import java.util.List;
 import java.util.UUID;
 
 /**
- * Repository for outbox entries. Used by the outbox publisher to poll PENDING entries.
+ * Repository for outbox entries.
  */
 public interface OutboxRepository extends JpaRepository<OutboxEntry, UUID> {
 
-    List<OutboxEntry> findByStatusOrderByCreatedAtAsc(OutboxEntry.Status status);
+    List<OutboxEntry> findByStatus(OutboxEntry.Status status);
 }
