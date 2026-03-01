@@ -15,7 +15,7 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http.authorizeHttpRequests(auth -> auth
-                .requestMatchers(EndpointRequest.to("health")).permitAll()
+                .requestMatchers("/health", "/health/**").permitAll()
                 .anyRequest().authenticated()
         );
         http.httpBasic(Customizer.withDefaults());
