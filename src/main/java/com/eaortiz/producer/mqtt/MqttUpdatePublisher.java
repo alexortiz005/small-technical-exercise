@@ -42,9 +42,9 @@ public class MqttUpdatePublisher {
             String topic = topicUpdates;
             if (client.isConnected()) {
                 client.publish(topic, message);
-                log.debug("Published device update to {}: deviceId={}", topic, payload.deviceId());
+                log.debug("Published device update to {}: id={}, name={}", topic, payload.deviceId(), payload.name());
             } else {
-                log.warn("MQTT client not connected; cannot publish update for device {}", payload.deviceId());
+                log.warn("MQTT client not connected; cannot publish update for device {}", payload.name());
             }
         } catch (JsonProcessingException e) {
             throw new IllegalArgumentException("Failed to serialize payload", e);
