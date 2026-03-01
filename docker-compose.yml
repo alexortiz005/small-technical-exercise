@@ -1,4 +1,18 @@
 services:
+  mosquitto:
+    image: eclipse-mosquitto:2
+    container_name: mosquitto
+    ports:
+      - "1883:1883"
+    volumes:
+      - mosquitto_data:/mosquitto/data
+      - mosquitto_log:/mosquitto/log
+    healthcheck:
+      test: ["CMD-SHELL", "mosquitto_sub -t '$$SYS/broker/version' -C 1 -W 2 || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+
   kafka:
     image: apache/kafka:latest
     container_name: kafka
@@ -31,12 +45,17 @@ services:
     depends_on:
       kafka:
         condition: service_healthy
+      mosquitto:
+        condition: service_healthy
     environment:
       SPRING_PROFILES_ACTIVE: default
       SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+      MQTT_BROKER_URL: tcp://mosquitto:1883
     ports:
       - "8080:8080"
     restart: unless-stopped
 
 volumes:
   kafka_data:
+  mosquitto_data:
+  mosquitto_log:

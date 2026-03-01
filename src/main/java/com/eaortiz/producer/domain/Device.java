@@ -6,8 +6,11 @@ import jakarta.persistence.EntityListeners;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedDate;
@@ -23,6 +26,9 @@ import java.util.UUID;
 @EntityListeners(AuditingEntityListener.class)
 @Getter
 @Setter
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
+@AllArgsConstructor
+@Builder
 public class Device {
 
     @Id
@@ -41,10 +47,4 @@ public class Device {
 
     @LastModifiedDate
     private Instant updatedAt;
-
-    @Builder
-    public Device(String name, double roomTemperature) {
-        this.name = name;
-        this.roomTemperature = roomTemperature;
-    }
 }
