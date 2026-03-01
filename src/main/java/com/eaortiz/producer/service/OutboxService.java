@@ -12,8 +12,8 @@ import com.eaortiz.producer.domain.OutboxEntry;
 import com.eaortiz.producer.domain.OutboxRepository;
 
 /**
- * Application service for the outbox. Handles the device-state snapshot outbox only (topic and partition key
- * are fixed). Use this to append snapshots and to poll/mark entries; no direct use of {@link OutboxRepository}.
+ * Application service for the outbox. Handles the device-state snapshot outbox only.
+ * Use this to append entries and to poll/mark entries; no direct use of {@link OutboxRepository}.
  */
 @Service
 public class OutboxService {
