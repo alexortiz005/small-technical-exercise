@@ -30,8 +30,9 @@ public class KafkaUpdatePublisher {
             try {
                 kafkaTemplate.send(entry.getTopic(), entry.getPartitionKey(), entry.getPayload()).join();
                 outboxService.markPublished(entry);
+                log.info("Published outbox entry {} to Kafka topic {}, devices-state will update after consumer processes it", entry.getId(), entry.getTopic());
             } catch (Exception e) {
-                log.warn("Failed to publish outbox entry {} to topic {}: {}", entry.getId(), entry.getTopic(), e.getMessage());
+                log.error("Failed to publish outbox entry {} to topic {}: {}", entry.getId(), entry.getTopic(), e.getMessage());
             }
         });
     }

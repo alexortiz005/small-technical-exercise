@@ -36,7 +36,7 @@ public class KafkaUpdateListener {
             snapshotService.replaceAll(snapshot);
             log.debug("Consumed device-state snapshot: {} devices", snapshot.size());
         } catch (JsonProcessingException e) {
-            log.warn("Failed to parse device-state snapshot: {}", e.getMessage());
+            log.error("Failed to parse device-state snapshot: {}", e.getMessage());
         }
     }
 }

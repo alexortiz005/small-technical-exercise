@@ -20,17 +20,19 @@ import com.eaortiz.producer.mock_testing.service.DeviceSnapshotService;
 import com.eaortiz.producer.mqtt.DeviceUpdatePayload;
 
 import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 /**
- * Mock controller: simulates devices sending updates via MQTT, and exposes the latest device-state snapshot.
+ * Mock controller: simulates devices sending updates via MQTT, and exposes the latest devices-state snapshot.
  * POST body is published to the MQTT updates topic; the subscriber then applies it to the repository.
- * GET returns the latest snapshot of all devices (from the last Kafka message consumed).
+ * GET /devices-state returns the latest snapshot of all devices (from the last Kafka message consumed).
  * Only registered when MQTT is enabled.
  */
 @RestController
 @RequestMapping("/api/mock")
 @ConditionalOnBean(MqttUpdatePublisher.class)
 @AllArgsConstructor
+@Slf4j
 public class MockDeviceController {
 
     private static final double TEMPERATURE_MIN_CELSIUS = 18.0;
@@ -44,7 +46,10 @@ public class MockDeviceController {
      */
     @PostMapping("/device-update")
     public ResponseEntity<Void> sendDeviceUpdate(@RequestBody DeviceUpdatePayload payload) {
+        log.info("Publishing device update to MQTT: deviceId={}, name={}, status={}, roomTemperature={}°C",
+                payload.deviceId(), payload.name(), payload.status(), payload.roomTemperature());
         publisher.publishUpdate(payload);
+        log.debug("Device update published for deviceId={}", payload.deviceId());
         return ResponseEntity.accepted().build();
     }
 
@@ -63,7 +68,9 @@ public class MockDeviceController {
     public ResponseEntity<Void> sendBulkDeviceUpdates(
             @RequestParam(name = "amountOfDevices") int amountOfDevices,
             @RequestParam(name = "amountOfRequests") int amountOfRequests) {
+        log.info("Bulk device updates requested: amountOfDevices={}, amountOfRequests={}", amountOfDevices, amountOfRequests);
         if (amountOfDevices < 1 || amountOfRequests < 1) {
+            log.warn("Bulk request rejected: amountOfDevices and amountOfRequests must be at least 1");
             return ResponseEntity.badRequest().build();
         }
         Device.Status[] statuses = Device.Status.values();
@@ -74,6 +81,7 @@ public class MockDeviceController {
                         ThreadLocalRandom.current().nextDouble(TEMPERATURE_MIN_CELSIUS, TEMPERATURE_MAX_CELSIUS),
                         Device.Status.ACTIVE))
                 .toList();
+        log.debug("Created {} mock devices for bulk run", devices.size());
         ThreadLocalRandom random = ThreadLocalRandom.current();
         for (int r = 0; r < amountOfRequests; r++) {
             DeviceUpdatePayload device = devices.get(random.nextInt(devices.size()));
@@ -81,14 +89,17 @@ public class MockDeviceController {
             Device.Status randomStatus = statuses[random.nextInt(statuses.length)];
             publisher.publishUpdate(new DeviceUpdatePayload(device.deviceId(), device.name(), temperature, randomStatus));
         }
+        log.info("Bulk complete: published {} device updates to MQTT ({} distinct devices)", amountOfRequests, amountOfDevices);
         return ResponseEntity.accepted().build();
     }
 
     /**
-     * Returns the latest snapshot of all devices (current state from the last consumed Kafka message).
+     * Returns the latest devices-state snapshot (all devices, from the last consumed Kafka message).
      */
-    @GetMapping("/device-state")
-    public List<Device> getLatestDeviceStateSnapshot() {
-        return deviceSnapshotService.getSnapshot();
+    @GetMapping("/devices-state")
+    public List<Device> getLatestDevicesStateSnapshot() {
+        List<Device> snapshot = deviceSnapshotService.getSnapshot();
+        log.info("Devices-state snapshot requested: returning {} device(s)", snapshot.size());
+        return snapshot;
     }
 }
