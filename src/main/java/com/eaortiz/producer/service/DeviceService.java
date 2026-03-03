@@ -1,26 +1,26 @@
 package com.eaortiz.producer.service;
 
+import java.util.Optional;
+import java.util.Set;
+
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.eaortiz.producer.domain.Device;
 import com.eaortiz.producer.domain.DeviceRepository;
-import com.eaortiz.producer.mqtt.DeviceUpdatePayload;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
-import java.util.Optional;
-import java.util.Set;
-
 /**
- * Application service for device operations. Validates only state transitions: the payload
- * carries the desired status and the transition from current to that status must be allowed.
- * Uses the outbox pattern for the full state snapshot.
+ * Application service for device operations. Accepts a {@link Device} (incoming state);
+ * validates state transitions and persists. Uses the outbox pattern for the full state snapshot.
  */
 @Service
 @Slf4j
+@AllArgsConstructor
 public class DeviceService {
 
     /** Allowed (from, to) status transitions. No transition from DEREGISTERED. */
@@ -33,22 +33,27 @@ public class DeviceService {
     private final OutboxService outboxService;
     private final ObjectMapper objectMapper;
 
-    public DeviceService(DeviceRepository deviceRepository,
-                         OutboxService outboxService,
-                         ObjectMapper objectMapper) {
-        this.deviceRepository = deviceRepository;
-        this.outboxService = outboxService;
-        this.objectMapper = objectMapper;
-    }
-
+    /**
+     * Creates or updates a device from the incoming device data. Validates state transitions;
+     * if allowed, saves and appends the full device snapshot to the outbox.
+     */
     @Transactional
-    public void createOrUpdate(DeviceUpdatePayload payload) {
-        Optional<Device> device = deviceRepository.findById(payload.deviceId());
-        Optional<Device> validated = validateTransitionAndPrepareDevice(payload, device);
-        if (validated.isEmpty()) {
+    public void createOrUpdate(Device device) {
+        Optional<Device> previous = deviceRepository.findById(device.getId());
+        // if the previous device is not found, validate the new device, otherwise validate the transition
+        boolean isValid = previous.map(value -> validateTransition(value, device)).orElseGet(() -> validateNewDevice(device));
+        if (!isValid) {
+            // if the device is not valid log the error and return
+            log.warn("Device update rejected: validation failed. deviceId={}, name={}.", device.getId(), device.getName());
             return;
         }
-        deviceRepository.save(validated.get());
+        Device toSave = previous.map(p -> {
+            p.setName(device.getName());
+            p.setRoomTemperature(device.getRoomTemperature());
+            p.setStatus(device.getStatus());
+            return p;
+        }).orElse(device);
+        deviceRepository.save(toSave);
         try {
             String payloadJson = objectMapper.writeValueAsString(deviceRepository.findAll());
             outboxService.appendSnapshot(payloadJson);
@@ -58,17 +63,29 @@ public class DeviceService {
     }
 
     /**
-     * Validates that the transition from current device status to payload status is allowed.
-     * Does not fetch; only uses payload and given device. Returns empty if transition is disallowed.
+     * Validates that a new device (no previous record) can be created. Only PENDING status is allowed for new devices.
      */
-    private Optional<Device> validateTransitionAndPrepareDevice(DeviceUpdatePayload payload, Optional<Device> existing) {
-        Device.Status currentStatus = existing.map(Device::getStatus).orElse(Device.Status.PENDING);
-        Device.Status requestedStatus = payload.status();
+    private boolean validateNewDevice(Device device) {
+        if (device.getStatus() != Device.Status.PENDING) {
+            log.warn("New device validation failed: status must be PENDING. deviceId={}, name={}, status={}.",
+                    device.getId(), device.getName(), device.getStatus());
+            return false;
+        }
+        return true;
+    }
+
+    /**
+     * Validates that the transition from the previous device status to the new device's status is allowed.
+     * Returns true if the transition is allowed, false otherwise. No side effects.
+     */
+    private boolean validateTransition(Device previous, Device newDevice) {
+        Device.Status currentStatus = previous.getStatus();
+        Device.Status requestedStatus = newDevice.getStatus();
 
         if (currentStatus == Device.Status.DEREGISTERED) {
-            log.error("State transition rejected: device is DEREGISTERED, no further transitions allowed. deviceId={}, name={}, requestedStatus={}.",
-                    payload.deviceId(), payload.name(), requestedStatus);
-            return Optional.empty();
+            log.warn("State transition rejected: device is DEREGISTERED, no further transitions allowed. deviceId={}, name={}, requestedStatus={}.",
+                    newDevice.getId(), newDevice.getName(), requestedStatus);
+            return false;
         }
 
         Set<Device.Status> allowedTargets = switch (currentStatus) {
@@ -76,23 +93,15 @@ public class DeviceService {
             case ACTIVE -> ALLOWED_FROM_ACTIVE;
             case INACTIVE -> ALLOWED_FROM_INACTIVE;
             case FAULTY -> ALLOWED_FROM_FAULTY;
-            case DEREGISTERED -> Set.of(); // already handled above
+            case DEREGISTERED -> Set.of();
         };
 
         if (!allowedTargets.contains(requestedStatus)) {
-            log.error("State transition rejected: {} -> {} is not allowed. deviceId={}, name={}. Allowed from {}: {}.",
-                    currentStatus, requestedStatus, payload.deviceId(), payload.name(), currentStatus, allowedTargets);
-            return Optional.empty();
+            log.warn("State transition rejected: {} -> {} is not allowed. deviceId={}, name={}. Allowed from {}: {}.",
+                    currentStatus, requestedStatus, newDevice.getId(), newDevice.getName(), currentStatus, allowedTargets);
+            return false;
         }
 
-        Device device = existing.orElseGet(() -> Device.builder()
-                .id(payload.deviceId())
-                .status(Device.Status.PENDING)
-                .build());
-
-        device.setName(payload.name());
-        device.setRoomTemperature(payload.roomTemperature());
-        device.setStatus(requestedStatus);
-        return Optional.of(device);
+        return true;
     }
 }
