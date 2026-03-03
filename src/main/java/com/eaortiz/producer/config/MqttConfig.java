@@ -33,6 +33,12 @@ public class MqttConfig {
     @Value("${mqtt.topic-updates}")
     private String topicUpdates;
 
+    @Value("${mqtt.username:}")
+    private String username;
+
+    @Value("${mqtt.password:}")
+    private String password;
+
     private final MqttClient mqttClient;
     private final com.eaortiz.producer.mqtt.MqttUpdateListener updateListener;
 
@@ -55,6 +61,12 @@ public class MqttConfig {
         MqttConnectOptions options = new MqttConnectOptions();
         options.setAutomaticReconnect(true);
         options.setCleanSession(true);
+        if (username != null && !username.isBlank()) {
+            options.setUserName(username);
+            if (password != null) {
+                options.setPassword(password.toCharArray());
+            }
+        }
         try {
             if (!mqttClient.isConnected()) {
                 mqttClient.connect(options);
