@@ -11,57 +11,24 @@ A Spring Boot service that receives **device updates** (e.g. temperature, status
 
 ## Run instructions
 
-**Requirements:** Java 21, Maven (or use the included Maven wrapper).
+**Recommended: Docker Compose** (starts MQTT, Kafka, and the app in one go)
 
-1. **From the project root:**
-
-   ```bash
-   ./mvnw spring-boot:run
-   ```
-
-   On Windows:
-
-   ```bash
-   mvnw.cmd spring-boot:run
-   ```
-
-2. The app starts on **port 8080**. Default login for protected endpoints: `admin` / `admin`.
-
-3. **Optional:** For MQTT and Kafka to work, run a broker and Kafka (e.g. locally or via Docker). Defaults in `application.properties`:
-   - MQTT: `tcp://localhost:1883`, topic `devices/updates`
-   - Kafka: `localhost:9094`, topic `device-state`
-
-**Docker:**
-
-```bash
-docker build -t producer .
-docker run -p 8080:8080 producer
-```
-
-Set `SPRING_KAFKA_BOOTSTRAP_SERVERS` and MQTT URL if your brokers are not on localhost.
-
-**Docker Compose** (MQTT + Kafka + producer):
-
-From the project root, start Mosquitto, Kafka, and the producer together:
+From the project root:
 
 ```bash
 docker compose up -d
 ```
 
-- **Mosquitto** (MQTT): port 1883  
-- **Kafka**: 9092 (internal), 9094 (external)  
-- **Producer**: http://localhost:8080  
+- App: **http://localhost:8080** (login: `admin` / `admin`)
+- Rebuild and start: `docker compose up -d --build`
+- Stop: `docker compose down`
 
-The producer is built from the Dockerfile and gets `SPRING_KAFKA_BOOTSTRAP_SERVERS=kafka:9092` and `MQTT_BROKER_URL=tcp://mosquitto:1883` from the compose file. It starts after Kafka and Mosquitto are healthy.
+---
 
-To rebuild and start:
-
-```bash
-docker compose up -d --build
-```
-
-To stop:
+**Optional: run locally** (Java 21, Maven wrapper)
 
 ```bash
-docker compose down
+./mvnw spring-boot:run
 ```
+
+On Windows: `mvnw.cmd spring-boot:run`. The app runs on port 8080. For MQTT and Kafka you need brokers running (e.g. start only infra with `docker compose up -d mosquitto kafka` and point the app at `localhost:1883` / `localhost:9094`).
