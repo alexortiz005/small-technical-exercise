@@ -1,6 +1,6 @@
 package com.eaortiz.producer.kafka;
 
-import com.eaortiz.producer.domain.OutboxEntry;
+import com.eaortiz.producer.outbox.OutboxEntry;
 import com.eaortiz.producer.service.OutboxService;
 import lombok.AllArgsConstructor;
 import org.slf4j.Logger;

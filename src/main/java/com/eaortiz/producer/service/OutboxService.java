@@ -8,8 +8,8 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.eaortiz.producer.domain.OutboxEntry;
-import com.eaortiz.producer.domain.OutboxRepository;
+import com.eaortiz.producer.outbox.OutboxEntry;
+import com.eaortiz.producer.outbox.OutboxRepository;
 
 /**
  * Application service for the outbox. Handles the device-state snapshot outbox only.

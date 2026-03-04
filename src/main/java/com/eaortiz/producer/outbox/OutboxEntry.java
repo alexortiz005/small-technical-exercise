@@ -1,4 +1,4 @@
-package com.eaortiz.producer.domain;
+package com.eaortiz.producer.outbox;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;

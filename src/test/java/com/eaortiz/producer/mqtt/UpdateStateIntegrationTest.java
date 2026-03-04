@@ -23,8 +23,8 @@ import org.springframework.test.context.DynamicPropertySource;
 
 import com.eaortiz.producer.domain.Device;
 import com.eaortiz.producer.domain.DeviceRepository;
-import com.eaortiz.producer.domain.OutboxEntry;
-import com.eaortiz.producer.domain.OutboxRepository;
+import com.eaortiz.producer.outbox.OutboxEntry;
+import com.eaortiz.producer.outbox.OutboxRepository;
 
 import io.moquette.broker.Server;
 import io.moquette.broker.config.MemoryConfig;

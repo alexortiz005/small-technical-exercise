@@ -1,4 +1,4 @@
-package com.eaortiz.producer.domain;
+package com.eaortiz.producer.outbox;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 
