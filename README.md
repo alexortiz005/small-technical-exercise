@@ -8,9 +8,7 @@ This application is a fictitious IoT-style producer used as a canonical dataset 
 
 ## Architecture
 
-<div style="background: #f5f5f5; padding: 1rem; border-radius: 8px; display: inline-block;">
 ![Architecture depiction](architecture_depiction.png)
-</div>
 
 ## What it does
 
