@@ -6,6 +6,7 @@ import java.util.concurrent.ThreadLocalRandom;
 import java.util.stream.IntStream;
 
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
+import org.springframework.context.annotation.Profile;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -26,10 +27,10 @@ import lombok.extern.slf4j.Slf4j;
  * Mock controller: simulates devices sending updates via MQTT, and exposes the latest devices-state snapshot.
  * POST body is published to the MQTT updates topic; the subscriber then applies it to the repository.
  * GET /devices-state returns the latest snapshot of all devices (from the last Kafka message consumed).
- * Only registered when MQTT is enabled.
  */
 @RestController
 @RequestMapping("/api/mock")
+@Profile("mock-testing")
 @ConditionalOnBean(MqttUpdatePublisher.class)
 @AllArgsConstructor
 @Slf4j

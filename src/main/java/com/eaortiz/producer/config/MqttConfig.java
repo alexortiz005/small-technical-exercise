@@ -1,5 +1,6 @@
 package com.eaortiz.producer.config;
 
+import com.eaortiz.producer.mqtt.MqttUpdateListener;
 import org.eclipse.paho.client.mqttv3.MqttClient;
 import org.eclipse.paho.client.mqttv3.MqttConnectOptions;
 import org.eclipse.paho.client.mqttv3.MqttException;
@@ -40,9 +41,9 @@ public class MqttConfig {
     private String password;
 
     private final MqttClient mqttClient;
-    private final com.eaortiz.producer.mqtt.MqttUpdateListener updateListener;
+    private final MqttUpdateListener updateListener;
 
-    public MqttConfig(@Lazy MqttClient mqttClient, com.eaortiz.producer.mqtt.MqttUpdateListener updateListener) {
+    public MqttConfig(@Lazy MqttClient mqttClient, MqttUpdateListener updateListener) {
         this.mqttClient = mqttClient;
         this.updateListener = updateListener;
     }

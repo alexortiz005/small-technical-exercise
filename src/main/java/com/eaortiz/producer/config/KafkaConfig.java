@@ -10,7 +10,7 @@ import org.springframework.kafka.config.TopicBuilder;
  * Creates the device-state Kafka topic with log compaction so only the latest snapshot per key is retained.
  */
 @Configuration
-public class KafkaTopicConfig {
+public class KafkaConfig {
 
     @Bean
     public NewTopic deviceStateTopic(@Value("${kafka.topic.device-state}") String topicName) {

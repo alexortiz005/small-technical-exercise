@@ -24,4 +24,6 @@ COPY --from=builder /app/target/producer-0.0.1-SNAPSHOT.jar app.jar
 
 # Tune for containers and high throughput
 ENV JAVA_OPTS="-XX:+UseContainerSupport -XX:MaxRAMPercentage=75.0 -XX:+UseG1GC"
+# Enable mock-testing profile (e.g. mock REST API for devices)
+ENV SPRING_PROFILES_ACTIVE=mock-testing,default
 ENTRYPOINT ["sh", "-c", "java $JAVA_OPTS -jar app.jar"]

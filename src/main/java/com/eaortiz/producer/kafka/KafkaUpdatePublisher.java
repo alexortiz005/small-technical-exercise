@@ -5,6 +5,7 @@ import com.eaortiz.producer.service.OutboxService;
 import lombok.AllArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
@@ -15,6 +16,7 @@ import java.util.Optional;
  * Polls the outbox for the single PENDING entry via {@link OutboxService}, publishes it to Kafka, then marks it PUBLISHED.
  */
 @Component
+@ConditionalOnProperty(name = "kafka.enabled", havingValue = "true", matchIfMissing = true)
 @AllArgsConstructor
 public class KafkaUpdatePublisher {
 
